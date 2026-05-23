@@ -1,0 +1,17 @@
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Frontend
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.eslintcache
+Frontend/*.tsbuildinfo
+
+# Backend
+Backend/target/
+Backend/.idea/
+
+# Logs
+*.log

@@ -1,0 +1,84 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-primary);
+  background: var(--main-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.el-card {
+  border-color: var(--card-border) !important;
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--card-shadow) !important;
+  background: var(--card-bg);
+}
+
+.el-table {
+  --el-table-border-color: var(--table-border);
+  --el-table-row-hover-bg-color: var(--table-hover);
+  --el-table-bg-color: var(--card-bg);
+  --el-table-header-bg-color: var(--card-bg);
+  --el-table-tr-bg-color: var(--card-bg);
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: var(--table-stripe);
+}
+
+.el-dialog {
+  border-radius: var(--dialog-radius) !important;
+}
+
+.el-input__wrapper,
+.el-select__wrapper {
+  border-radius: var(--input-radius) !important;
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--primary);
+  --el-button-border-color: var(--primary);
+  --el-button-hover-bg-color: var(--primary);
+  --el-button-hover-border-color: var(--primary);
+}
+
+.el-menu {
+  border-right: none !important;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-duration) ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-fade-enter-active {
+  transition: all var(--transition-duration) ease-out;
+}
+.slide-fade-leave-active {
+  transition: all var(--transition-duration) ease-in;
+}
+.slide-fade-enter-from {
+  transform: translateX(20px);
+  opacity: 0;
+}
+.slide-fade-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}

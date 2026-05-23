@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: student-manage
+  datasource:
+    url: ${STUDENT_MANAGE_DB_URL:jdbc:mysql://localhost:3306/student_manage?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
+    username: ${STUDENT_MANAGE_DB_USERNAME:root}
+    password: ${STUDENT_MANAGE_DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+jwt:
+  secret: ${STUDENT_MANAGE_JWT_SECRET:ChangeMeToAStrongJwtSecretKeyBeforeProductionUse}
+  expiration: ${STUDENT_MANAGE_JWT_EXPIRATION:86400000}
+
+logging:
+  level:
+    com.example.backend: ${STUDENT_MANAGE_LOG_LEVEL:debug}
