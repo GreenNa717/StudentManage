@@ -37,6 +37,21 @@
 | 教师 | `GET /api/teachers` | `GET /api/teachers/{id}` | `POST /api/teachers` | `PUT /api/teachers/{id}` | `DELETE /api/teachers/{id}` |
 | 课程 | `GET /api/courses` | `GET /api/courses/{id}` | `POST /api/courses` | `PUT /api/courses/{id}` | `DELETE /api/courses/{id}` |
 | 成绩 | `GET /api/scores` | `GET /api/scores/{id}` | `POST /api/scores` | `PUT /api/scores/{id}` | `DELETE /api/scores/{id}` |
+| 用户 | `GET /api/users` | `GET /api/users/{id}` | `POST /api/users` | `PUT /api/users/{id}` | `DELETE /api/users/{id}` |
+
+## 用户管理模块说明
+
+- `PUT /api/users/{id}/reset-password`
+  将指定账号密码重置为默认值 `123456`。
+
+- 用户管理接口目前仅管理员可访问。
+
+- 用户写接口会额外校验：
+  - 用户名唯一
+  - 教师账号必须关联教师档案
+  - 学生账号必须关联学生档案
+  - 同一教师/学生档案不能重复绑定多个账号
+  - 当前登录账号不能删除自己，也不能禁用自己
 
 ## 成绩模块说明
 

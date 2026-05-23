@@ -8,6 +8,7 @@ export function getMenuByRole(role: string) {
       { path: 'student', title: '学生管理', icon: 'Avatar' },
       { path: 'course', title: '课程管理', icon: 'Notebook' },
       { path: 'score', title: '成绩管理', icon: 'DataAnalysis' },
+      { path: 'user', title: '用户管理', icon: 'Setting' },
     ],
     TEACHER: [
       { path: 'student', title: '学生信息', icon: 'Avatar' },

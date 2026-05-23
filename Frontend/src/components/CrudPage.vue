@@ -16,6 +16,7 @@ const props = defineProps<{
   searchFields?: SearchField[]
   formFields: FormField[]
   formDefault: Record<string, any>
+  formRules?: Record<string, any[]>
   formLabelWidth?: string
   dialogWidth?: string
   searchParams?: Record<string, any>
@@ -41,9 +42,12 @@ const form = reactive<Record<string, any>>({})
 const rules = computed(() => {
   const r: Record<string, any[]> = {}
   for (const field of props.formFields) {
-    if (field.required) {
+    if (field.required && !(editingId.value !== null && field.hideOnEdit)) {
       r[field.key] = [{ required: true, message: `${field.label}不能为空`, trigger: field.type === 'select' || field.type === 'radio' ? 'change' : 'blur' }]
     }
+  }
+  if (props.formRules) {
+    Object.assign(r, props.formRules)
   }
   return r
 })
@@ -147,6 +151,10 @@ function handlePageChange(page: number) {
 function getRadioOptions(field: FormField) {
   return field.options || []
 }
+
+function shouldRenderField(field: FormField) {
+  return !(editingId.value !== null && field.hideOnEdit)
+}
 </script>
 
 <template>
@@ -242,10 +250,12 @@ function getRadioOptions(field: FormField) {
     <el-dialog v-model="dialogVisible" :title="dialogTitle" :width="dialogWidth || '520px'" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" :label-width="formLabelWidth || '90px'" class="crud-form">
         <template v-for="field in formFields" :key="field.key">
-          <el-form-item :label="field.label" :prop="field.key">
+          <el-form-item v-if="shouldRenderField(field)" :label="field.label" :prop="field.key">
             <el-input
               v-if="field.type === 'input'"
               v-model="form[field.key]"
+              :type="field.inputType || 'text'"
+              :show-password="field.inputType === 'password'"
               :placeholder="field.placeholder || `请输入${field.label}`"
             />
             <el-input

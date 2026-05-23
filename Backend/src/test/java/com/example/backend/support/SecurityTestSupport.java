@@ -13,7 +13,11 @@ public abstract class SecurityTestSupport {
     }
 
     protected void authenticate(String role, Long refId) {
-        LoginUser loginUser = new LoginUser(1L, "tester", "password", role, refId, true);
+        authenticate(1L, role, refId);
+    }
+
+    protected void authenticate(Long id, String role, Long refId) {
+        LoginUser loginUser = new LoginUser(id, "tester", "password", role, refId, true);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -65,6 +65,7 @@ function addDynamicRoutes() {
       { path: 'student', name: 'Student', component: () => import('../views/student/index.vue'), meta: { title: '学生管理' } },
       { path: 'course', name: 'Course', component: () => import('../views/course/index.vue'), meta: { title: '课程管理' } },
       { path: 'score', name: 'Score', component: () => import('../views/score/index.vue'), meta: { title: '成绩管理' } },
+      { path: 'user', name: 'UserManage', component: () => import('../views/user/index.vue'), meta: { title: '用户管理' } },
     ],
     TEACHER: [
       { path: 'student', name: 'Student', component: () => import('../views/student/index.vue'), meta: { title: '学生信息' } },

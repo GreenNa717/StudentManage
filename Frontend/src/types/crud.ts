@@ -27,6 +27,7 @@ export interface FormField {
   key: string
   label: string
   type: 'input' | 'select' | 'number' | 'date' | 'radio' | 'textarea'
+  inputType?: 'text' | 'password'
   required?: boolean
   placeholder?: string
   options?: SelectOption[]
@@ -37,4 +38,5 @@ export interface FormField {
   rows?: number
   valueFormat?: string
   filterable?: boolean
+  hideOnEdit?: boolean
 }
