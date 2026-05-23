@@ -58,8 +58,18 @@
 - `GET /api/scores/statistics`
   用于查询课程成绩统计。
 
+- `POST /api/scores/import`
+  通过 CSV 批量导入成绩。
+
+- `GET /api/scores/export`
+  导出当前权限范围和筛选条件下的成绩 CSV。
+
+- `GET /api/scores/template`
+  下载成绩导入模板。
+
 - 成绩写接口会额外校验：
   - 成绩范围 `0-100`
   - 学生和课程必须存在
   - 同一学生、同一课程、同一学期成绩唯一
   - 教师只能维护本人授课课程的成绩
+  - 导入时若同一学生、课程、学期已存在成绩，则执行更新

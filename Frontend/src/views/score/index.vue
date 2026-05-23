@@ -1,22 +1,31 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import CrudPage from '@/components/CrudPage.vue'
 import * as api from '@/api/score'
 import { getStudentPage } from '@/api/student'
 import { getCoursePage } from '@/api/course'
-import { getScoreStatistics } from '@/api/score'
+import { downloadScoreTemplate, exportScores, getScoreStatistics, importScores } from '@/api/score'
 import { useUserStore } from '@/stores/user'
 import type { FormField, SearchField } from '@/types/crud'
+import { ElMessage } from 'element-plus'
+import type { UploadRequestOptions } from 'element-plus'
 
 const userStore = useUserStore()
 const isAdmin = computed(() => userStore.role === 'ADMIN')
 const isTeacher = computed(() => userStore.role === 'TEACHER')
 const isStudent = computed(() => userStore.role === 'STUDENT')
 
+const crudRef = ref<{ loadData: () => void } | null>(null)
 const students = ref<any[]>([])
 const courses = ref<any[]>([])
 const statistics = ref<any[]>([])
 const showStats = ref(false)
+const importing = ref(false)
+const scoreSearch = reactive<Record<string, any>>({
+  studentId: undefined,
+  courseId: undefined,
+  semester: '',
+})
 
 onMounted(async () => {
   const [sRes, cRes]: any[] = await Promise.all([
@@ -64,15 +73,64 @@ async function loadStatistics() {
   statistics.value = res.data
   showStats.value = true
 }
+
+function saveBlob(blob: Blob, fileName: string) {
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
+async function handleExport() {
+  const blob = await exportScores({
+    studentId: scoreSearch.studentId,
+    courseId: scoreSearch.courseId,
+    semester: scoreSearch.semester || undefined,
+  })
+  saveBlob(blob, 'scores.csv')
+  ElMessage.success('成绩导出成功')
+}
+
+async function handleTemplateDownload() {
+  const blob = await downloadScoreTemplate()
+  saveBlob(blob, 'score-import-template.csv')
+  ElMessage.success('模板下载成功')
+}
+
+async function handleImportUpload(options: UploadRequestOptions) {
+  importing.value = true
+  try {
+    const res: any = await importScores(options.file)
+    const summary = `总行数 ${res.data.totalRows}，新增 ${res.data.createdCount}，更新 ${res.data.updatedCount}，跳过 ${res.data.skippedCount}`
+    ElMessage.success(summary)
+    if (res.data.errorMessages?.length) {
+      ElMessage.warning(`有 ${res.data.errorMessages.length} 条导入异常，请检查后重试`)
+      console.warn('score import warnings', res.data.errorMessages)
+    }
+    crudRef.value?.loadData()
+    options.onSuccess?.(res)
+  } catch (error) {
+    options.onError?.(error as any)
+    throw error
+  } finally {
+    importing.value = false
+  }
+}
 </script>
 
 <template>
   <CrudPage
+    ref="crudRef"
     title="成绩"
     :api="api"
     :showAdd="isAdmin || isTeacher"
     :showEdit="isAdmin || isTeacher"
     :showDelete="isAdmin"
+    :searchModel="scoreSearch"
     :columns="[
       { prop: 'id', label: 'ID', width: 80 },
       { prop: 'studentNo', label: '学号', width: 130 },
@@ -88,6 +146,22 @@ async function loadStatistics() {
     :editFields="['studentId', 'courseId', 'score', 'semester']"
   >
     <template #toolbar-extra>
+      <el-button v-if="isAdmin || isTeacher" @click="handleTemplateDownload">
+        <el-icon><Download /></el-icon>模板
+      </el-button>
+      <el-upload
+        v-if="isAdmin || isTeacher"
+        :show-file-list="false"
+        accept=".csv,text/csv"
+        :http-request="handleImportUpload"
+      >
+        <el-button type="primary" plain :loading="importing">
+          <el-icon><Upload /></el-icon>导入
+        </el-button>
+      </el-upload>
+      <el-button v-if="isAdmin || isTeacher" type="success" plain @click="handleExport">
+        <el-icon><Download /></el-icon>导出
+      </el-button>
       <el-button type="info" @click="loadStatistics">
         <el-icon><DataAnalysis /></el-icon>查看统计
       </el-button>

@@ -20,6 +20,7 @@ const props = defineProps<{
   formLabelWidth?: string
   dialogWidth?: string
   searchParams?: Record<string, any>
+  searchModel?: Record<string, any>
   showAdd?: boolean
   showEdit?: boolean
   showDelete?: boolean
@@ -53,9 +54,12 @@ const rules = computed(() => {
 })
 
 onMounted(() => {
+  const source = props.searchModel || searchForm
   if (props.searchFields) {
     for (const f of props.searchFields) {
-      searchForm[f.key] = undefined
+      if (!(f.key in source)) {
+        source[f.key] = undefined
+      }
     }
   }
   loadData()
@@ -68,9 +72,10 @@ async function loadData() {
       page: pagination.page,
       size: pagination.size,
     }
+    const source = props.searchModel || searchForm
     if (props.searchFields) {
       for (const f of props.searchFields) {
-        const val = searchForm[f.key]
+        const val = source[f.key]
         if (val !== undefined && val !== null && val !== '') {
           params[f.key] = val
         }
@@ -93,9 +98,10 @@ function handleSearch() {
 }
 
 function handleReset() {
+  const source = props.searchModel || searchForm
   if (props.searchFields) {
     for (const f of props.searchFields) {
-      searchForm[f.key] = undefined
+      source[f.key] = undefined
     }
   }
   handleSearch()
@@ -155,6 +161,8 @@ function getRadioOptions(field: FormField) {
 function shouldRenderField(field: FormField) {
   return !(editingId.value !== null && field.hideOnEdit)
 }
+
+defineExpose({ loadData })
 </script>
 
 <template>
@@ -164,12 +172,12 @@ function shouldRenderField(field: FormField) {
         <div class="toolbar-left">
           <template v-if="searchFields">
             <template v-for="field in searchFields" :key="field.key">
-              <el-input
-                v-if="field.type === 'input'"
-                v-model="searchForm[field.key]"
-                :placeholder="field.placeholder || '请输入'"
-                clearable
-                :style="{ width: field.width || '200px' }"
+                <el-input
+                  v-if="field.type === 'input'"
+                  v-model="(props.searchModel || searchForm)[field.key]"
+                  :placeholder="field.placeholder || '请输入'"
+                  clearable
+                  :style="{ width: field.width || '200px' }"
                 @keyup.enter="handleSearch"
                 @clear="handleSearch"
               >
@@ -177,7 +185,7 @@ function shouldRenderField(field: FormField) {
               </el-input>
               <el-select
                 v-else-if="field.type === 'select'"
-                v-model="searchForm[field.key]"
+                v-model="(props.searchModel || searchForm)[field.key]"
                 :placeholder="field.placeholder || '请选择'"
                 :clearable="field.clearable !== false"
                 :filterable="field.filterable"
@@ -188,7 +196,7 @@ function shouldRenderField(field: FormField) {
               </el-select>
               <el-input-number
                 v-else-if="field.type === 'number'"
-                v-model="searchForm[field.key]"
+                v-model="(props.searchModel || searchForm)[field.key]"
                 :placeholder="field.placeholder"
                 :min="field.min"
                 :max="field.max"

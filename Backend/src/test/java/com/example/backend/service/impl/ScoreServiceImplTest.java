@@ -4,6 +4,7 @@ import com.example.backend.common.constants.RoleConstants;
 import com.example.backend.common.exception.BusinessException;
 import com.example.backend.common.result.ErrorCode;
 import com.example.backend.dto.request.ScoreRequest;
+import com.example.backend.dto.response.ScoreImportResultVO;
 import com.example.backend.entity.Course;
 import com.example.backend.entity.Score;
 import com.example.backend.entity.Student;
@@ -16,9 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -87,5 +90,72 @@ class ScoreServiceImplTest extends SecurityTestSupport {
         assertEquals(ErrorCode.FORBIDDEN, exception.getCode());
         assertEquals("只能查看本人的成绩信息", exception.getMessage());
         verify(courseMapper, never()).selectById(anyLong());
+    }
+
+    @Test
+    void teacherCannotImportScoresForAnotherTeachersCourse() {
+        authenticate(RoleConstants.TEACHER, 2L);
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "scores.csv",
+                "text/csv",
+                "studentNo,courseNo,score,semester\n2023001001,CS101,92,2024-2025-1\n".getBytes(StandardCharsets.UTF_8)
+        );
+
+        Student student = new Student();
+        student.setId(1L);
+        student.setStudentNo("2023001001");
+        Course course = new Course();
+        course.setId(3L);
+        course.setCourseNo("CS101");
+        course.setTeacherId(88L);
+
+        when(studentMapper.selectOne(any())).thenReturn(student);
+        when(courseMapper.selectOne(any())).thenReturn(course);
+
+        ScoreImportResultVO result = scoreService.importScores(file);
+
+        assertEquals(1, result.getTotalRows());
+        assertEquals(0, result.getCreatedCount());
+        assertEquals(0, result.getUpdatedCount());
+        assertEquals(1, result.getSkippedCount());
+        assertEquals("第2行: 只能维护本人授课课程的成绩", result.getErrorMessages().getFirst());
+        verify(scoreMapper, never()).insert(any(Score.class));
+    }
+
+    @Test
+    void importShouldUpdateExistingScore() {
+        authenticate(RoleConstants.ADMIN, null);
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "scores.csv",
+                "text/csv",
+                "studentNo,courseNo,score,semester\n2023001001,CS101,98,2024-2025-1\n".getBytes(StandardCharsets.UTF_8)
+        );
+
+        Student student = new Student();
+        student.setId(1L);
+        student.setStudentNo("2023001001");
+        Course course = new Course();
+        course.setId(3L);
+        course.setCourseNo("CS101");
+        course.setTeacherId(2L);
+        Score existing = new Score();
+        existing.setId(11L);
+        existing.setStudentId(1L);
+        existing.setCourseId(3L);
+        existing.setSemester("2024-2025-1");
+
+        when(studentMapper.selectOne(any())).thenReturn(student);
+        when(courseMapper.selectOne(any())).thenReturn(course);
+        when(scoreMapper.selectOne(any())).thenReturn(existing);
+
+        ScoreImportResultVO result = scoreService.importScores(file);
+
+        assertEquals(1, result.getTotalRows());
+        assertEquals(0, result.getCreatedCount());
+        assertEquals(1, result.getUpdatedCount());
+        assertEquals(0, result.getSkippedCount());
+        verify(scoreMapper).updateById(existing);
     }
 }

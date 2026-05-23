@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.common.result.PageResult;
 import com.example.backend.common.result.Result;
 import com.example.backend.dto.request.ScoreRequest;
+import com.example.backend.dto.response.ScoreImportResultVO;
 import com.example.backend.dto.response.ScoreStatisticsVO;
 import com.example.backend.dto.response.ScoreVO;
 import com.example.backend.service.ScoreService;
@@ -10,7 +11,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 @RestController
@@ -64,5 +67,34 @@ public class ScoreController {
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) String semester) {
         return Result.success(scoreService.getStatistics(courseId, semester));
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public Result<ScoreImportResultVO> importScores(@RequestParam("file") MultipartFile file) {
+        return Result.success(scoreService.importScores(file));
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public org.springframework.http.ResponseEntity<byte[]> exportScores(
+            @RequestParam(required = false) Long studentId,
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) String semester) {
+        ByteArrayInputStream stream = scoreService.exportScores(studentId, courseId, semester);
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=scores.csv")
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+                .body(stream.readAllBytes());
+    }
+
+    @GetMapping("/template")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public org.springframework.http.ResponseEntity<byte[]> exportTemplate() {
+        ByteArrayInputStream stream = scoreService.exportTemplate();
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=score-import-template.csv")
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+                .body(stream.readAllBytes());
     }
 }
